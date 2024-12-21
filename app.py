@@ -24,9 +24,11 @@ Tone and Presentation:
 - Avoid technical jargon unless necessary for accuracy.
 - Ensure your responses are patient-centered and clinically actionable.
 """
+api_key = st.secrets["api_key"]["key"]
 
-# Configure genai with API key
+# Use the API key as needed
 genai.configure(api_key=api_key)
+
 
 # Set the page configuration
 st.set_page_config(page_title="MediVision", page_icon="🔬")
