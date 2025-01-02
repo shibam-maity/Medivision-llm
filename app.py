@@ -1,90 +1,140 @@
+import streamlit as st
+import google.generativeai as genai
+from PIL import Image
 import os
-import streamlit as st # type: ignore
-import google.generativeai as genai # type: ignore
-from api_key import api_key  # Import your API key
+import time
+from api_key import api_key
 
-# System Prompt
-system_prompt = """
-You are a highly advanced medical image analysis expert with extensive knowledge in radiology, pathology, and diagnostic imaging. Your role is to assist with analyzing medical images to provide valuable insights while adhering to professional and ethical standards.
-
-Your Responsibilities:
-- Thorough Analysis: Carefully examine each image to identify abnormalities, anomalies, or signs of disease with precision and clarity.
-- Findings Documentation: Provide a clear, concise report detailing observed issues, highlighting their clinical significance, and noting any areas of uncertainty.
-- Actionable Recommendations: Suggest potential next steps, such as additional tests, referrals to specialists, or further diagnostic procedures based on your findings.
-- Treatment Suggestions (If Applicable): Recommend possible interventions or treatments, ensuring they align with your analysis, but emphasize consulting with a medical professional.
-
-Guidelines:
-- Focus on Relevance: Respond only if the image pertains to human health or clinical diagnostics.
-- Image Quality Considerations: If the image quality hinders analysis, clearly state the limitations and suggest re-evaluation with higher-quality imaging.
-- Disclaimer: Conclude every analysis with the following disclaimer:
-  "This analysis is for informational purposes only. Please consult a licensed medical professional before proceeding with any medical decisions."
-
-Tone and Presentation:
-- Use professional and concise language.
-- Avoid technical jargon unless necessary for accuracy.
-- Ensure your responses are patient-centered and clinically actionable.
-"""
-
-# Configure genai with API key
+# Configure Gemini
 genai.configure(api_key=api_key)
+model = genai.GenerativeModel('gemini-1.5-pro')
 
-# Set the page configuration
-st.set_page_config(page_title="MediVision", page_icon="🔬")
+# Initialize chat
+if "chat" not in st.session_state:
+    st.session_state.chat = model.start_chat(history=[])
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-# Set up the Streamlit interface
-st.image("Computer-Vision-AI-new.jpg", width=700, )  # Logo image
-st.title("🔬 MediVision 🧬")
-st.subheader("An application that helps users analyze medical images")
+# System prompt
+system_prompt = """You are a medical imaging expert AI assistant. When analyzing images, provide:
+1. Detailed description
+2. Potential diagnoses
+3. Key anatomical structures
+4. Abnormalities
+5. Image quality assessment
+6. Recommendations
 
-# File uploader for medical image
-uploaded_file = st.file_uploader("Upload the medical image for analysis", type=["png", "jpg", "jpeg"])
-submit_button = st.button("Generate Analysis")
+For general medical questions, be informative while noting you're not a replacement for professional medical advice.
+Be conversational but professional in your responses."""
 
-# Function to upload file to Gemini
-def upload_to_gemini(path, mime_type=None):
-    """Uploads the given file to Gemini."""
-    file = genai.upload_file(path, mime_type=mime_type)
-    return file
+# Enhanced response generation
+def get_gemini_response(input_text, image=None, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            if image:
+                response = model.generate_content([input_text, image])
+            else:
+                response = st.session_state.chat.send_message(input_text)
+            return response.text
+        except Exception as e:
+            if "429" in str(e) and attempt < max_retries - 1:
+                time.sleep(2)
+                continue
+            return f"Sorry, I'm currently experiencing issues. Please try again. Error: {str(e)}"
 
-# Function to analyze the image using Google Generative AI
-def analyze_image(file_path):
-    """Analyze the uploaded image using Google Generative AI."""
-    file = upload_to_gemini(file_path, mime_type="image/jpeg")
-    generation_config = {
-        "temperature": 1,
-        "top_p": 0.95,
-        "top_k": 40,
-        "max_output_tokens": 8192,
-        "response_mime_type": "text/plain",
-    }
-    model = genai.GenerativeModel(
-        model_name="gemini-1.5-pro",
-        generation_config=generation_config,
-    )
-    # Include system instructions in the user's initial message
-    chat_session = model.start_chat(
-        history=[
-            {"role": "user", "parts": [f"{system_prompt}\nAnalyze this medical image."]},
-            {"role": "user", "parts": [file]},  # Correctly pass the file
-        ]
-    )
-    response = chat_session.send_message("Please analyze the uploaded medical image.")
-    return response.text
+# Streamlit UI
+st.title("MediVision AI Assistant")
 
-# When the user clicks the "Generate Analysis" button
-if submit_button and uploaded_file is not None:
-    # Save the uploaded file temporarily
-    with open("temp_image.jpeg", "wb") as temp_file:
-        temp_file.write(uploaded_file.getbuffer())
 
+# Chat container
+chat_container = st.container()
+with chat_container:
+    for role, message in st.session_state.chat_history:
+        with st.chat_message(role):
+            if isinstance(message, tuple) and message[0] == "image":
+                st.image(message[1], caption="Uploaded Medical Image")
+                st.write(message[2])
+            else:
+                st.write(message)
+
+# Sidebar
+with st.sidebar:
+    st.header("Upload Medical Image")
+    uploaded_file = st.file_uploader("Choose a medical image...", type=["jpg", "jpeg", "png"])
+    
+    # Clear Chat button
+    if st.button("Clear Chat"):
+        try:
+            # Clear all session state
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            
+            # Reinitialize chat
+            st.session_state.chat = model.start_chat(history=[])
+            st.session_state.chat_history = []
+            
+            # Clear all caches
+            st.cache_data.clear()
+            st.cache_resource.clear()
+            
+            # Show success message
+            st.success("Chat cleared! Refreshing page...")
+            
+            # Force a complete page reload using JavaScript
+            st.markdown(
+                """
+                <script>
+                    window.parent.location.reload();
+                </script>
+                """,
+                unsafe_allow_html=True
+            )
+            
+            # Backup rerun in case JavaScript doesn't work
+            st.rerun()
+            
+        except Exception as e:
+            st.error(f"Error clearing chat: {str(e)}")
+
+# Handle image upload
+if uploaded_file and "image_processed" not in st.session_state:
     try:
-        # Analyze the uploaded image
-        analysis_result = analyze_image("temp_image.jpeg")
-        st.success("Analysis Generated Successfully!")
-        st.write(analysis_result)  # Display the analysis result
+        image = Image.open(uploaded_file)
+        with st.spinner('Analyzing image...'):
+            # Add context to image analysis
+            response = get_gemini_response(
+                f"{system_prompt}\nPlease analyze this medical image:", 
+                image
+            )
+        
+        st.session_state.chat_history.append(("user", ("image", image, "Uploaded a medical image for analysis")))
+        st.session_state.chat_history.append(("assistant", response))
+        st.session_state.image_processed = True
+        st.rerun()
+        
     except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
-    finally:
-        # Clean up the temporary file
-        if os.path.exists("temp_image.jpeg"):
-            os.remove("temp_image.jpeg")
+        st.error(f"❌ Error processing image: {str(e)}")
+
+# User input
+user_input = st.chat_input("Ask me anything about the image or any medical questions...")
+
+# Handle text input
+if user_input:
+    # Show user message immediately
+    st.chat_message("user").write(user_input)
+    
+    # Generate response
+    with st.spinner('Thinking...'):
+        response = get_gemini_response(user_input)
+    
+    # Show assistant response
+    st.chat_message("assistant").write(response)
+    
+    # Update chat history
+    st.session_state.chat_history.append(("user", user_input))
+    st.session_state.chat_history.append(("assistant", response))
+
+# Footer
+with st.sidebar:
+    st.markdown("---")
+    st.markdown("*Note: This AI assistant is for informational purposes only and should not replace professional medical advice.*")
