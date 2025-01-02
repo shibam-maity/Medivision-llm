@@ -1,10 +1,10 @@
 <h1>MediVision AI Assistant </h1>
 MediVision is an AI-powered medical assistant allows users to upload medical images (e.g., X-rays, MRI scans) and get detailed analysis, including possible diagnoses, anatomical structures, abnormalities, image quality assessment, and recommendations. It also includes a chatbot functionality to answer general medical queries.
-<img src="https://github.com/yourusername/yourrepository/blob/main/images/ai_analysis_screenshot.png" alt="AI Analysis Screenshot">
+<img src="Medivision.png">
 
 
 
-
+<h2> setup </h2>
 </pre>
                 </li>
                 <li><strong>Set up a virtual environment (optional but recommended):</strong>
