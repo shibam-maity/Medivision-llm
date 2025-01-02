@@ -1,5 +1,7 @@
 <h1>MediVision AI Assistant </h1>
+<li>
 MediVision is an AI-powered medical assistant allows users to upload medical images (e.g., X-rays, MRI scans) and get detailed analysis, including possible diagnoses, anatomical structures, abnormalities, image quality assessment, and recommendations. It also includes a chatbot functionality to answer general medical queries.
+</li>
 <img src="Medivision.png">
 
 
@@ -21,7 +23,7 @@ MediVision is an AI-powered medical assistant allows users to upload medical ima
                 </li>
                 <li><strong>Obtain Google Gemini API Key:</strong>
                     <ul>
-                        <li>Go to the <a href="https://ai.google.dev/gemini-api/docs/api-key)" target="_blank">Google Cloud Console</a>.</li>
+                        <li>Go to the <a href="https://ai.google.dev/gemini-api/docs/api-key)" target="_blank">Google Gemini api</a>.</li>
                         <li>Set up a new project and enable the <strong>Google Gemini API</strong>.</li>
                         <li>Obtain the API key and save it in a file named <code>api_key.py</code> in the project directory.</li>
                     </ul>
