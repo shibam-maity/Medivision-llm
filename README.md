@@ -1,21 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediVision AI Assistant</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-
-
-</head>
+<h1>MediVision AI Assistant </h1>
 
 <body>
 
@@ -106,34 +89,6 @@ You are a medical imaging expert AI assistant. When analyzing images, provide:
 
 For general medical questions, be informative while noting you're not a replacement for professional medical advice.
 Be conversational but professional in your responses.
-        </pre>
+        
 
-        <h2>Example Workflow</h2>
-        <ul>
-            <li><strong>Upload an Image</strong>: A user uploads an image, such as an X-ray or MRI scan.</li>
-            <li><strong>Analysis</strong>: The AI analyzes the image and provides a detailed response.</li>
-            <li><strong>Conversational Chat</strong>: The user can ask questions about the image or general medical inquiries.</li>
-            <li><strong>Response</strong>: The AI responds, helping the user understand the image's findings.</li>
-        </ul>
 
-        <h2>Contributing</h2>
-        <p>We welcome contributions! Feel free to fork the repository, submit issues, or create pull requests. Make sure to follow these steps:</p>
-        <ol>
-            <li>Fork the repo.</li>
-            <li>Create a new branch for your changes.</li>
-            <li>Submit a pull request with a description of your changes.</li>
-        </ol>
-
-        <h2>Disclaimer</h2>
-        <p class="note">
-            This AI assistant is for informational purposes only and should not replace professional medical advice. Always consult a healthcare professional for diagnosis and treatment.
-        </p>
-
-        <div class="footer">
-            <p>License: MIT License - See the <a href="LICENSE">LICENSE</a> file for details.</p>
-        </div>
-    </div>
-
-</body>
-
-</html>
